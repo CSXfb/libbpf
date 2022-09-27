@@ -24,7 +24,8 @@ RUN apt-get update && apt-get -y install \
         rsync \
         software-properties-common \
         sudo \
-        tree
+        tree \
+        iproute2
 
 # amd64 dependencies.
 COPY --from=ld-prefix / /usr/x86_64-linux-gnu/
@@ -43,6 +44,8 @@ ENV USER=actions-runner
 WORKDIR /home/actions-runner
 RUN curl -L https://github.com/actions/runner/releases/download/v${version}/actions-runner-linux-x64-${version}.tar.gz | tar -xz
 VOLUME /home/actions-runner
+HEALTHCHECK --start-period=60s --interval=30s --timeout=5s --retries=3 \
+        CMD (ss -ntp -H dport = :443 | grep -q ESTAB) || exit 1
 
 # Scripts.
 COPY fs/ /
